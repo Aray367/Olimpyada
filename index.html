@@ -6,7 +6,9 @@
     <title>Республикалық Мектеп Олимпиадалары</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* СТИЛЬДЕР (бұрынғы кодтың барлық стиль бөлімін сақтаңыз - өзгеріссіз қалдырыңыз) */
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #2980b9;
@@ -25,907 +27,221 @@
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        body.dark-mode {
+        /* ... барлық стильдер (жоғарыдағы кодтың бүкіл стиль бөлімін осы жерге қойыңыз) ... */
+
+        /* ЖАҢА СТИЛЬДЕР: Графиктер үшін */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        /* Анимациялар */
+        @keyframes slideInRight {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.5s ease forwards;
+        }
+
+        /* Жүктеу индикаторы */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(41, 128, 185, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Иерархиялық карточкалар */
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .card {
             background-color: #1a1a2e;
-            color: #e6e6e6;
         }
 
-        body.dark-mode .container {
-            background-color: #16213e;
-            color: #e6e6e6;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
         }
 
-        body.dark-mode .event {
-            background-color: #1a1a2e;
-            color: #e6e6e6;
+        /* Сұрыптау панелі */
+        .sort-panel {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
         }
 
-        body.dark-mode .admin-panel {
-            background-color: rgba(255, 255, 255, 0.05);
+        .sort-btn {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        body.dark-mode .form-container input,
-        body.dark-mode .form-container textarea,
-        body.dark-mode .form-container select {
+        body.dark-mode .sort-btn {
             background-color: #2d3748;
             color: #e6e6e6;
             border-color: #4a5568;
         }
 
-        header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            text-align: center;
-            padding: 40px 0;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 8px;
-            background: linear-gradient(to right, var(--accent-color), #e74c3c);
-        }
-        
-        .header-content {
-            max-width: 800px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .logo {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .logo i {
-            margin-right: 15px;
-            color: var(--accent-color);
-        }
-        
-        nav {
-            background: var(--dark-color);
-            padding: 15px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
-        }
-        
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin: 0 20px;
-            font-weight: 600;
-            padding: 8px 15px;
-            border-radius: 30px;
-            transition: all 0.3s ease;
-            font-size: 1.1rem;
-            position: relative;
-            display: inline-block;
-        }
-        
-        nav a:hover, nav a.active {
-            background-color: var(--secondary-color);
-            transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        
-        .container {
-            width: 85%;
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 30px;
-            background: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border-radius: 10px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-        }
-        
-        .container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-        }
-        
-        .event {
-            background: #fff;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            border-left: 5px solid var(--accent-color);
-        }
-        
-        .event:hover {
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-            transform: translateY(-5px);
-        }
-        
-        .event-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .event-date {
+        .sort-btn.active {
             background: var(--secondary-color);
             color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
-        
-        .event-image {
-            position: relative;
-            overflow: hidden;
-            border-radius: 8px;
-            height: 250px;
-            margin-bottom: 20px;
-        }
-        
-        .event-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-        
-        .event-image:hover img {
-            transform: scale(1.05);
-        }
-        
-        .event-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 15px 0;
-        }
-        
-        .detail-item {
-            display: flex;
-            align-items: center;
-        }
-        
-        .detail-item i {
-            margin-right: 10px;
-            color: var(--secondary-color);
-            font-size: 1.2rem;
-        }
-        
-        .event button {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            margin-top: 15px;
-            cursor: pointer;
-            border-radius: 30px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: auto;
-            font-size: 1rem;
-            box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
-            margin-right: 10px;
-        }
-        
-        .event button i {
-            margin-left: 8px;
-        }
-        
-        .event button:hover {
-            background: #2ecc71;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(46, 204, 113, 0.4);
-        }
-        
-        footer {
-            background: var(--primary-color);
-            color: white;
-            text-align: center;
-            padding: 30px;
-            margin-top: 50px;
-            position: relative;
-        }
-        
-        footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(to right, var(--accent-color), var(--secondary-color));
-        }
-        
-        .social-links {
-            margin: 20px 0;
-        }
-        
-        .social-links a {
-            color: white;
-            font-size: 1.5rem;
-            margin: 0 15px;
-            transition: all 0.3s ease;
-        }
-        
-        .social-links a:hover {
-            color: var(--accent-color);
-            transform: translateY(-3px);
-        }
-        
-        .form-container {
-            display: none;
-            background: white;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-radius: 10px;
-            animation: fadeIn 0.5s ease;
-        }
-
-        body.dark-mode .form-container {
-            background-color: #1a1a2e;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .form-container h3 {
-            margin-top: 0;
-            color: var(--secondary-color);
-        }
-        
-        .form-container input, 
-        .form-container textarea, 
-        .form-container select {
-            width: 100%;
-            padding: 12px 15px;
-            margin: 12px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-sizing: border-box;
-        }
-        
-        .form-container input:focus, 
-        .form-container textarea:focus {
             border-color: var(--secondary-color);
-            outline: none;
-            box-shadow: 0 0 8px rgba(41, 128, 185, 0.2);
         }
-        
-        .form-container button {
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            cursor: pointer;
-            border-radius: 30px;
-            font-weight: bold;
-            transition: all 0.3s ease;
+
+        /* Рейтинг кестесі */
+        .ranking-table {
             width: 100%;
-            font-size: 1rem;
-            margin-top: 10px;
-            box-shadow: 0 4px 8px rgba(41, 128, 185, 0.3);
-        }
-        
-        .form-container button:hover {
-            background: #3498db;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4);
-        }
-        
-        .show-form {
-            display: block;
-        }
-        
-        .add-event-btn {
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            cursor: pointer;
-            border-radius: 30px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            margin-bottom: 20px;
-            font-size: 1rem;
-            box-shadow: 0 4px 8px rgba(41, 128, 185, 0.3);
-        }
-        
-        .add-event-btn i {
-            margin-right: 8px;
-        }
-        
-        .add-event-btn:hover {
-            background: #3498db;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4);
-        }
-        
-        .success-message {
-            display: none;
-            background: var(--accent-color);
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            text-align: center;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.7);
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 30px;
-            border-radius: 10px;
-            width: 80%;
-            max-width: 600px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.3);
-            position: relative;
-            animation: slideDown 0.4s ease;
-        }
-
-        body.dark-mode .modal-content {
-            background-color: #1a1a2e;
-            color: #e6e6e6;
-        }
-        
-        @keyframes slideDown {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 28px;
-            font-weight: bold;
-            color: #aaa;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-        
-        .close-btn:hover {
-            color: #333;
-        }
-        
-        .admin-panel {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid var(--secondary-color);
-        }
-        
-        .admin-panel h3 {
-            margin-top: 0;
-            color: var(--secondary-color);
-        }
-        
-        .participants-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
-        }
-
-        body.dark-mode .participants-list {
-            border-color: #4a5568;
-        }
-        
-        .participant-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        body.dark-mode .participant-item {
-            border-color: #4a5568;
-        }
-        
-        .participant-item:last-child {
-            border-bottom: none;
-        }
-        
-        .stats-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            border-collapse: collapse;
             margin: 20px 0;
         }
-        
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: all 0.3s ease;
+
+        .ranking-table th, .ranking-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
         }
 
-        body.dark-mode .stat-card {
-            background-color: #1a1a2e;
+        body.dark-mode .ranking-table th,
+        body.dark-mode .ranking-table td {
+            border-color: #4a5568;
         }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-        }
-        
-        .stat-card i {
-            font-size: 2rem;
-            color: var(--secondary-color);
-            margin-bottom: 10px;
-        }
-        
-        .stat-card .number {
-            font-size: 2rem;
+
+        .ranking-table th {
+            background-color: #f8f9fa;
             font-weight: bold;
             color: var(--primary-color);
         }
 
-        body.dark-mode .stat-card .number {
-            color: #e6e6e6;
-        }
-        
-        .stat-card .label {
-            color: #666;
-            font-size: 0.9rem;
+        body.dark-mode .ranking-table th {
+            background-color: #2d3748;
         }
 
-        body.dark-mode .stat-card .label {
-            color: #b0b0b0;
-        }
-        
-        .tab-container {
-            margin-top: 20px;
-        }
-        
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+        .ranking-table tr:hover {
+            background-color: #f5f5f5;
         }
 
-        body.dark-mode .tabs {
-            border-color: #4a5568;
+        body.dark-mode .ranking-table tr:hover {
+            background-color: rgba(255,255,255,0.05);
         }
-        
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-        
-        .tab.active {
-            border-bottom-color: var(--secondary-color);
-            color: var(--secondary-color);
+
+        .medal {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 25px;
             font-weight: bold;
+            margin-right: 10px;
         }
-        
-        .tab-content {
+
+        .gold { background: gold; color: #333; }
+        .silver { background: silver; color: #333; }
+        .bronze { background: #cd7f32; color: white; }
+
+        /* Құпия сөзді басқару */
+        .password-protected {
+            position: relative;
+        }
+
+        .password-input {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        body.dark-mode .password-input {
+            background-color: #2d3748;
+        }
+
+        .password-input input {
+            width: 200px;
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .incorrect-password {
+            color: #e74c3c;
+            margin-top: 10px;
             display: none;
         }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .telegram-section {
-            margin: 30px 0;
-            text-align: center;
-        }
-        
-        .telegram-banner {
-            background: linear-gradient(135deg, #0088cc, #34aadc);
-            color: white;
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .telegram-banner i {
-            font-size: 3.5rem;
-            margin-bottom: 15px;
-        }
-        
-        .telegram-banner h3 {
-            margin: 0 0 10px 0;
-            font-size: 1.5rem;
-        }
-        
-        .telegram-banner p {
-            margin: 5px 0;
-        }
-        
-        .telegram-bot-name {
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: white;
-            background: rgba(0,0,0,0.1);
-            padding: 5px 15px;
-            border-radius: 20px;
-            margin: 10px 0;
-        }
-        
-        .telegram-btn {
-            background: white;
-            color: #0088cc;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 15px;
-            font-size: 1rem;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            display: inline-flex;
-            align-items: center;
-        }
-        
-        .telegram-btn i {
-            margin-right: 8px;
-        }
-        
-        .telegram-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        
-        .qr-code-container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            margin: 20px auto;
-            max-width: 300px;
-        }
 
-        body.dark-mode .qr-code-container {
-            background-color: #1a1a2e;
-        }
-        
-        .qr-code-title {
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-        
-        .qr-code-image {
-            max-width: 100%;
-            border: 1px solid #eee;
-            padding: 15px;
-            background: white;
-        }
-        
-        .copy-bot-btn {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 15px;
-            display: inline-flex;
-            align-items: center;
-        }
-        
-        .copy-bot-btn i {
-            margin-right: 8px;
-        }
-        
-        .copy-bot-btn:hover {
-            background: #2ecc71;
-            transform: translateY(-2px);
-        }
-
-        /* ЖАҢА СТИЛЬДЕР */
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #e74c3c;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .urgent-event {
-            border-left: 5px solid #e74c3c !important;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
-        }
-        
-        .event-status {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            margin-left: 10px;
-        }
-        
-        .status-upcoming {
-            background: #3498db;
-            color: white;
-        }
-        
-        .status-ongoing {
-            background: #27ae60;
-            color: white;
-        }
-        
-        .status-completed {
-            background: #95a5a6;
-            color: white;
-        }
-        
-        .status-urgent {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        .filter-buttons {
-            display: flex;
-            gap: 10px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        
-        .filter-btn {
-            padding: 8px 16px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .filter-btn {
-            background-color: #2d3748;
-            color: #e6e6e6;
-            border-color: #4a5568;
-        }
-        
-        .filter-btn.active {
-            background: var(--secondary-color);
-            color: white;
-            border-color: var(--secondary-color);
-        }
-        
-        .event-countdown {
-            background: var(--accent-color);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            margin-left: 10px;
-        }
-        
-        .live-stats {
-            margin-top: 10px;
-            font-size: 1.1rem;
-            background: rgba(255,255,255,0.2);
-            padding: 8px 15px;
-            border-radius: 20px;
-            display: inline-block;
-        }
-        
-        .dark-mode-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            cursor: pointer;
-            z-index: 1000;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-        }
-        
-        .dark-mode-toggle:hover {
-            transform: scale(1.1);
-        }
-        
-        .export-btn {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 10px 0;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .notification-item {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            border-left: 4px solid #3498db;
-        }
-
-        body.dark-mode .notification-item {
-            border-color: #3498db;
-        }
-        
-        .notification-item.urgent {
-            border-left-color: #e74c3c;
-            background: #fff5f5;
-        }
-
-        body.dark-mode .notification-item.urgent {
-            background: rgba(231, 76, 60, 0.1);
-        }
-        
-        .notification-item.success {
-            border-left-color: #27ae60;
-            background: #f0fff4;
-        }
-
-        body.dark-mode .notification-item.success {
-            background: rgba(39, 174, 96, 0.1);
-        }
-
-        /* ЖАҢА: Жедел жаңартулар анимациясы */
-        .event-pulse {
-            animation: highlightPulse 2s ease;
-        }
-
-        @keyframes highlightPulse {
-            0% { background-color: rgba(52, 152, 219, 0.1); }
-            100% { background-color: transparent; }
-        }
-
-        /* ЖАҢА: Шектеу көрсеткіші */
-        .capacity-indicator {
-            margin-top: 10px;
-        }
-
-        .capacity-bar {
-            height: 8px;
-            background-color: #ecf0f1;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 5px 0;
-        }
-
-        .capacity-fill {
-            height: 100%;
-            background-color: var(--accent-color);
-            transition: width 0.5s ease;
-        }
-
-        /* ЖАҢА: Топтар */
-        .category-tag {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            margin: 5px;
-            background-color: #f1f1f1;
-        }
-
-        body.dark-mode .category-tag {
-            background-color: #2d3748;
-        }
-
-        /* ЖАҢА: Жетістік сыйлықтары */
-        .achievement-badge {
-            display: inline-block;
-            padding: 5px 10px;
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
-            color: #333;
-            border-radius: 20px;
-            margin: 2px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
+        /* Мобильді адаптивтілік */
         @media (max-width: 768px) {
             .container {
                 width: 95%;
                 padding: 20px;
             }
+            
             nav a {
                 margin: 0 5px;
                 padding: 5px 10px;
                 font-size: 0.9rem;
             }
+            
             .event-details {
                 grid-template-columns: 1fr;
             }
+            
             .modal-content {
                 width: 95%;
                 margin: 10% auto;
                 padding: 20px;
             }
+            
             .telegram-banner {
                 padding: 20px 15px;
             }
-            .filter-buttons {
+            
+            .filter-buttons, .sort-panel {
                 justify-content: center;
             }
+            
             .logo {
                 font-size: 1.8rem;
             }
+            
             .event-header {
                 flex-direction: column;
                 align-items: flex-start;
             }
+            
             .event-date {
                 align-self: flex-start;
+            }
+            
+            .ranking-table {
+                font-size: 0.9rem;
+            }
+            
+            .ranking-table th, .ranking-table td {
+                padding: 8px 10px;
             }
         }
 
@@ -933,22 +249,31 @@
             .container {
                 padding: 15px;
             }
+            
             nav {
                 padding: 10px;
             }
+            
             nav a {
                 margin: 0 3px;
                 padding: 4px 8px;
                 font-size: 0.8rem;
             }
+            
             .stats-cards {
                 grid-template-columns: 1fr;
             }
+            
             .tabs {
                 flex-direction: column;
             }
+            
             .tab {
                 text-align: center;
+            }
+            
+            .sort-panel {
+                flex-direction: column;
             }
         }
     </style>
@@ -963,6 +288,7 @@
             <p>Білімді жаңа деңгейге көтеріңіз!</p>
             <div class="live-stats">
                 <span id="live-participants">0</span> қатысушы онлайн
+                <span id="current-time" style="margin-left: 20px;"></span>
             </div>
         </div>
     </header>
@@ -971,6 +297,7 @@
         <a href="#events" class="active"><i class="fas fa-calendar-alt"></i> Іс-шаралар</a>
         <a href="#add-event"><i class="fas fa-plus-circle"></i> Іс-шара қосу</a>
         <a href="#admin"><i class="fas fa-user-shield"></i> Әкімшілік</a>
+        <a href="#results"><i class="fas fa-chart-line"></i> Нәтижелер</a>
         <a href="#contact"><i class="fas fa-envelope"></i> Байланыс</a>
         <a href="#notifications" id="notification-btn">
             <i class="fas fa-bell"></i> Хабарламалар
@@ -988,6 +315,13 @@
             <button class="filter-btn" data-filter="urgent">Жедел</button>
             <button class="filter-btn" data-filter="upcoming">Алдағы</button>
             <button class="filter-btn" data-filter="ongoing">Жүргізілуде</button>
+        </div>
+        
+        <div class="sort-panel">
+            <button class="sort-btn active" data-sort="date-asc">Күні бойынша (ең жақын)</button>
+            <button class="sort-btn" data-sort="date-desc">Күні бойынша (ең алыс)</button>
+            <button class="sort-btn" data-sort="name-asc">Атауы бойынша (А-Я)</button>
+            <button class="sort-btn" data-sort="participants-desc">Қатысушылар саны</button>
         </div>
         
         <div class="stats-cards">
@@ -1042,7 +376,15 @@
                 </select>
                 <textarea id="eventDescription" placeholder="Сипаттама *" rows="5" required></textarea>
                 <input type="url" id="eventImage" placeholder="Сурет URL (қосымша)">
-                <button type="submit"><i class="fas fa-save"></i> Іс-шараны қосу</button>
+                <div class="password-protected">
+                    <p><i class="fas fa-lock"></i> Бұл форма пароль қажет етеді</p>
+                    <div class="password-input">
+                        <input type="password" id="adminPassword" placeholder="Әкімшілік паролі">
+                        <button type="button" id="checkPasswordBtn">Тексеру</button>
+                        <div class="incorrect-password" id="incorrectPassword">Қате пароль!</div>
+                    </div>
+                </div>
+                <button type="submit" id="submitEventBtn" disabled><i class="fas fa-save"></i> Іс-шараны қосу</button>
             </form>
             <div class="success-message" id="successMessage">
                 <i class="fas fa-check-circle"></i> Іс-шара сәтті қосылды! 🎉
@@ -1053,18 +395,36 @@
     <div class="container animate__animated animate__fadeInUp" id="admin">
         <h2><i class="fas fa-user-shield"></i> Әкімшілік Панелі</h2>
         
-        <div class="tab-container">
+        <div class="password-protected">
+            <p><i class="fas fa-lock"></i> Әкімшілік панеліне кіру үшін парольді енгізіңіз:</p>
+            <div class="password-input" id="adminPasswordInput">
+                <input type="password" id="adminAccessPassword" placeholder="Әкімшілік паролі">
+                <button type="button" id="adminAccessBtn">Кіру</button>
+                <div class="incorrect-password" id="adminIncorrectPassword">Қате пароль!</div>
+            </div>
+        </div>
+        
+        <div class="tab-container" id="adminTabs" style="display: none;">
             <div class="tabs">
                 <div class="tab active" data-tab="participants">Қатысушылар</div>
                 <div class="tab" data-tab="events">Іс-шараларды басқару</div>
                 <div class="tab" data-tab="stats">Статистика</div>
+                <div class="tab" data-tab="settings">Параметрлер</div>
             </div>
             
             <div class="tab-content active" id="participants-tab">
                 <div class="admin-panel">
                     <h3><i class="fas fa-users"></i> Тіркелген қатысушылар</h3>
+                    <div class="sort-panel">
+                        <button class="sort-btn active" data-sort-participants="date-desc">Соңғы тіркелгендер</button>
+                        <button class="sort-btn" data-sort-participants="name-asc">Аты бойынша (А-Я)</button>
+                        <button class="sort-btn" data-sort-participants="school-asc">Мектеп бойынша</button>
+                    </div>
                     <button class="export-btn" id="exportParticipants">
                         <i class="fas fa-download"></i> Қатысушыларды экспорттау
+                    </button>
+                    <button class="export-btn" id="exportCSV" style="background: #27ae60;">
+                        <i class="fas fa-file-csv"></i> CSV файлға экспорттау
                     </button>
                     <div class="participants-list" id="participants-list">
                         <!-- Қатысушылар тізімі осында пайда болады -->
@@ -1078,6 +438,9 @@
                     <button class="export-btn" id="exportEvents">
                         <i class="fas fa-download"></i> Іс-шараларды экспорттау
                     </button>
+                    <button class="export-btn" id="deleteAllEvents" style="background: #e74c3c;">
+                        <i class="fas fa-trash"></i> Барлық іс-шараларды жою
+                    </button>
                     <div id="admin-events-list">
                         <!-- Іс-шараларды басқару тізімі осында пайда болады -->
                     </div>
@@ -1087,8 +450,35 @@
             <div class="tab-content" id="stats-tab">
                 <div class="admin-panel">
                     <h3><i class="fas fa-chart-bar"></i> Статистика</h3>
-                    <div id="charts-container">
-                        <!-- Статистика графиктері осында пайда болады -->
+                    <div class="chart-container">
+                        <canvas id="eventsChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="participantsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="settings-tab">
+                <div class="admin-panel">
+                    <h3><i class="fas fa-cog"></i> Параметрлер</h3>
+                    <div class="card">
+                        <h4>Жүйе параметрлері</h4>
+                        <div class="form-group">
+                            <label for="adminEmail">Әкімшілік email:</label>
+                            <input type="email" id="adminEmail" value="admin@olimpiada.kz">
+                        </div>
+                        <div class="form-group">
+                            <label for="telegramBotName">Telegram бот аты:</label>
+                            <input type="text" id="telegramBotName" value="@smart_olimpyada_bot">
+                        </div>
+                        <div class="form-group">
+                            <label for="defaultCapacity">Әдепкі қатысушылар саны:</label>
+                            <input type="number" id="defaultCapacity" value="100" min="1">
+                        </div>
+                        <button class="export-btn" id="saveSettings">
+                            <i class="fas fa-save"></i> Параметрлерді сақтау
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1097,8 +487,52 @@
     
     <div class="container animate__animated animate__fadeInUp" id="results">
         <h2><i class="fas fa-chart-line"></i> Нәтижелер және Рейтинг</h2>
-        <div id="results-content">
-            <p>Нәтижелер жақын арада жарияланады...</p>
+        
+        <div class="tab-container">
+            <div class="tabs">
+                <div class="tab active" data-results-tab="ranking">Рейтинг</div>
+                <div class="tab" data-results-tab="winners">Жеңімпаздар</div>
+                <div class="tab" data-results-tab="history">Тарих</div>
+            </div>
+            
+            <div class="tab-content active" id="ranking-tab">
+                <div id="results-content">
+                    <h3>Оқушылар рейтингі</h3>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Орын</th>
+                                <th>Оқушы</th>
+                                <th>Мектеп</th>
+                                <th>Қала</th>
+                                <th>Ұпай</th>
+                                <th>Іс-шара</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ranking-table-body">
+                            <!-- Рейтинг кестесі осында толтырылады -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="winners-tab">
+                <div class="card">
+                    <h3>Соңғы іс-шаралардың жеңімпаздары</h3>
+                    <div id="winners-list">
+                        <!-- Жеңімпаздар тізімі осында пайда болады -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="history-tab">
+                <div class="card">
+                    <h3>Өткен іс-шаралар тарихы</h3>
+                    <div id="history-list">
+                        <!-- Тарих тізімі осында пайда болады -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -1138,6 +572,16 @@
             <p><i class="fas fa-envelope"></i> Email: <a href="mailto:aray.skenderova@mail.ru">aray.skenderova@mail.ru</a></p>
             <p><i class="fas fa-map-marker-alt"></i> Мекен-жай: Нұр-Сұлтан қаласы</p>
         </div>
+        
+        <div class="card">
+            <h3><i class="fas fa-comments"></i> Пікір қалдыру</h3>
+            <form id="feedbackForm">
+                <input type="text" id="feedbackName" placeholder="Аты-жөніңіз" required>
+                <input type="email" id="feedbackEmail" placeholder="Email" required>
+                <textarea id="feedbackMessage" placeholder="Пікіріңіз..." rows="4" required></textarea>
+                <button type="submit"><i class="fas fa-paper-plane"></i> Жіберу</button>
+            </form>
+        </div>
     </div>
     
     <footer>
@@ -1175,6 +619,9 @@
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <h2><i class="fas fa-bell"></i> Хабарламалар</h2>
+            <button class="export-btn" id="markAllRead" style="margin-bottom: 15px;">
+                <i class="fas fa-check-double"></i> Барлығын оқылған деп белгілеу
+            </button>
             <div id="notifications-list">
                 <!-- Хабарламалар осында пайда болады -->
             </div>
@@ -1186,7 +633,7 @@
     </button>
 
     <script>
-        // Мәліметтер базасын эмуляциялау
+        // Кеңейтілген мәліметтер базасы
         let events = [
             {
                 id: 1,
@@ -1198,7 +645,9 @@
                 image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
                 participants: 124,
                 capacity: 200,
-                registeredAt: "2025-01-15"
+                registeredAt: "2025-01-15",
+                status: "upcoming",
+                categories: ["математика", "республикалық"]
             },
             {
                 id: 2,
@@ -1210,7 +659,9 @@
                 image: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
                 participants: 87,
                 capacity: 150,
-                registeredAt: "2025-01-20"
+                registeredAt: "2025-01-20",
+                status: "upcoming",
+                categories: ["ағылшын тілі", "қалалық"]
             },
             {
                 id: 3,
@@ -1222,7 +673,9 @@
                 image: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
                 participants: 56,
                 capacity: 100,
-                registeredAt: "2025-01-10"
+                registeredAt: "2025-01-10",
+                status: "upcoming",
+                categories: ["информатика", "бағдарламалау"]
             },
             {
                 id: 4,
@@ -1234,7 +687,9 @@
                 image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
                 participants: 95,
                 capacity: 120,
-                registeredAt: "2025-02-01"
+                registeredAt: "2025-02-01",
+                status: "upcoming",
+                categories: ["ғылым", "жобалар"]
             }
         ];
 
@@ -1249,7 +704,8 @@
                 city: "Нұр-Сұлтан",
                 eventId: 1,
                 eventName: "Математика Олимпиадасы",
-                registeredAt: "2025-03-10"
+                registeredAt: "2025-03-10",
+                score: 95
             },
             {
                 id: 2,
@@ -1261,13 +717,42 @@
                 city: "Алматы",
                 eventId: 2,
                 eventName: "Ағылшын Тілі Конкурсы",
-                registeredAt: "2025-03-12"
+                registeredAt: "2025-03-12",
+                score: 88
+            },
+            {
+                id: 3,
+                name: "Жүнісов Бақыт",
+                email: "bakyt.j@example.com",
+                phone: "+77773456789",
+                school: "№5 мектеп",
+                class: "9",
+                city: "Шымкент",
+                eventId: 3,
+                eventName: "Информатика чемпионаты",
+                registeredAt: "2025-03-05",
+                score: 92
             }
         ];
+
+        // Әкімшілік паролі
+        const ADMIN_PASSWORD = "admin123";
+        let isAdminAuthenticated = false;
 
         // Жалпы функциялар
         function formatDate(dateString) {
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('kk-KZ', options);
+        }
+
+        function formatDateTime(dateString) {
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
             return new Date(dateString).toLocaleDateString('kk-KZ', options);
         }
 
@@ -1284,7 +769,7 @@
         }
 
         // Іс-шараларды көрсету функциясы
-        function displayEvents() {
+        function displayEvents(sortType = 'date-asc') {
             const eventsList = document.getElementById('events-list');
             eventsList.innerHTML = '';
             
@@ -1293,12 +778,29 @@
                 return;
             }
             
-            // Сұрыптау: алдымен алдағы іс-шаралар, кейін өткендер
-            const sortedEvents = [...events].sort((a, b) => new Date(a.date) - new Date(b.date));
+            // Іс-шараларды сұрыптау
+            let sortedEvents = [...events];
+            
+            switch(sortType) {
+                case 'date-asc':
+                    sortedEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    break;
+                case 'date-desc':
+                    sortedEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    break;
+                case 'name-asc':
+                    sortedEvents.sort((a, b) => a.name.localeCompare(b.name, 'kk'));
+                    break;
+                case 'participants-desc':
+                    sortedEvents.sort((a, b) => b.participants - a.participants);
+                    break;
+            }
             
             sortedEvents.forEach(event => {
                 const eventDate = new Date(event.date);
                 const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
                 const timeDiff = eventDate.getTime() - today.getTime();
                 const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
                 
@@ -1310,6 +812,10 @@
                     status = 'completed';
                     statusText = 'Аяқталған';
                     statusClass = 'status-completed';
+                } else if (daysDiff === 0) {
+                    status = 'ongoing';
+                    statusText = 'Бүгін';
+                    statusClass = 'status-ongoing';
                 } else if (daysDiff <= 3) {
                     status = 'urgent';
                     statusText = 'Жедел';
@@ -1320,10 +826,13 @@
                     statusClass = 'status-ongoing';
                 }
                 
+                // Статусты жаңарту
+                event.status = status;
+                
                 const capacityPercentage = event.capacity ? Math.min(100, (event.participants / event.capacity) * 100) : 0;
                 
                 const eventElement = document.createElement('div');
-                eventElement.className = `event ${status === 'urgent' ? 'urgent-event' : ''}`;
+                eventElement.className = `event animate__animated ${status === 'urgent' ? 'urgent-event' : ''}`;
                 eventElement.setAttribute('data-type', event.type);
                 eventElement.setAttribute('data-status', status);
                 
@@ -1354,17 +863,24 @@
                     </div>
                     ${event.capacity ? `
                     <div class="capacity-indicator">
-                        <div>Орын толтылуы: ${event.participants}/${event.capacity}</div>
+                        <div>Орын толтылуы: ${event.participants}/${event.capacity} (${capacityPercentage.toFixed(1)}%)</div>
                         <div class="capacity-bar">
                             <div class="capacity-fill" style="width: ${capacityPercentage}%"></div>
                         </div>
+                        ${capacityPercentage >= 90 ? '<p style="color: #e74c3c; font-weight: bold;"><i class="fas fa-exclamation-triangle"></i> Орындар таусылып жатыр!</p>' : ''}
                     </div>
                     ` : ''}
                     <p>${event.description}</p>
+                    <div class="category-tags">
+                        ${event.categories ? event.categories.map(cat => `<span class="category-tag">${cat}</span>`).join('') : ''}
+                    </div>
                     <button class="register-btn" data-event-id="${event.id}" data-event-name="${event.name}">
                         <i class="fas fa-user-plus"></i> Тіркелу
                     </button>
-                    ${status === 'completed' ? '<button class="results-btn" style="background: #9b59b6; margin-left: 10px;"><i class="fas fa-chart-bar"></i> Нәтижелер</button>' : ''}
+                    <button class="details-btn" onclick="showEventDetails(${event.id})" style="background: #9b59b6;">
+                        <i class="fas fa-info-circle"></i> Толығырақ
+                    </button>
+                    ${status === 'completed' ? '<button class="results-btn" onclick="showEventResults(' + event.id + ')" style="background: #3498db; margin-left: 10px;"><i class="fas fa-chart-bar"></i> Нәтижелер</button>' : ''}
                 `;
                 eventsList.appendChild(eventElement);
             });
@@ -1381,12 +897,135 @@
             updateStats();
         }
 
+        // Іс-шара туралы толық ақпарат
+        function showEventDetails(eventId) {
+            const event = events.find(e => e.id === eventId);
+            if (!event) return;
+            
+            const modal = document.getElementById('registrationModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const registrationForm = document.getElementById('registrationForm');
+            
+            modalTitle.innerHTML = `<i class="fas fa-info-circle"></i> "${event.name}" туралы толық ақпарат`;
+            registrationForm.style.display = 'none';
+            
+            const eventDetails = document.createElement('div');
+            eventDetails.innerHTML = `
+                <div class="event">
+                    <div class="event-header">
+                        <h3>${event.name}</h3>
+                        <div class="event-date">${formatDate(event.date)}</div>
+                    </div>
+                    <img src="${event.image}" style="width:100%; border-radius:8px; margin:15px 0;">
+                    <div class="event-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span><strong>Орын:</strong> ${event.location}</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-users"></i>
+                            <span><strong>Қатысушылар:</strong> ${event.participants}</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-tag"></i>
+                            <span><strong>Түрі:</strong> ${getEventType(event.type)}</span>
+                        </div>
+                    </div>
+                    <p><strong>Сипаттама:</strong> ${event.description}</p>
+                    ${event.capacity ? `<p><strong>Сыйымдылық:</strong> ${event.capacity} адам</p>` : ''}
+                    <button onclick="openRegistrationModal(${event.id}, '${event.name}')" class="register-btn" style="margin-top:20px;">
+                        <i class="fas fa-user-plus"></i> Осы іс-шараға тіркелу
+                    </button>
+                </div>
+            `;
+            
+            modal.querySelector('.modal-content').appendChild(eventDetails);
+            modal.style.display = 'block';
+            
+            modal.querySelector('.close-btn').onclick = () => {
+                modal.style.display = 'none';
+                eventDetails.remove();
+                registrationForm.style.display = 'block';
+            };
+        }
+
+        // Нәтижелерді көрсету
+        function showEventResults(eventId) {
+            const event = events.find(e => e.id === eventId);
+            if (!event) return;
+            
+            const eventParticipants = participants.filter(p => p.eventId === eventId);
+            
+            const modal = document.getElementById('registrationModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const registrationForm = document.getElementById('registrationForm');
+            
+            modalTitle.innerHTML = `<i class="fas fa-trophy"></i> "${event.name}" нәтижелері`;
+            registrationForm.style.display = 'none';
+            
+            const resultsDiv = document.createElement('div');
+            
+            if (eventParticipants.length > 0) {
+                // Ұпай бойынша сұрыптау
+                const sortedParticipants = [...eventParticipants].sort((a, b) => (b.score || 0) - (a.score || 0));
+                
+                let resultsHTML = `
+                    <h3>Жеңімпаздар:</h3>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Орын</th>
+                                <th>Оқушы</th>
+                                <th>Мектеп</th>
+                                <th>Ұпай</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                sortedParticipants.forEach((participant, index) => {
+                    let medal = '';
+                    if (index === 0) medal = '<span class="medal gold">🥇</span>';
+                    else if (index === 1) medal = '<span class="medal silver">🥈</span>';
+                    else if (index === 2) medal = '<span class="medal bronze">🥉</span>';
+                    
+                    resultsHTML += `
+                        <tr>
+                            <td>${index + 1} ${medal}</td>
+                            <td>${participant.name}</td>
+                            <td>${participant.school}</td>
+                            <td>${participant.score || 0}</td>
+                        </tr>
+                    `;
+                });
+                
+                resultsHTML += `</tbody></table>`;
+                resultsDiv.innerHTML = resultsHTML;
+            } else {
+                resultsDiv.innerHTML = '<p>Бұл іс-шарада қатысушылар жоқ немесе нәтижелер әлі жарияланбады.</p>';
+            }
+            
+            modal.querySelector('.modal-content').appendChild(resultsDiv);
+            modal.style.display = 'block';
+            
+            modal.querySelector('.close-btn').onclick = () => {
+                modal.style.display = 'none';
+                resultsDiv.remove();
+                registrationForm.style.display = 'block';
+            };
+        }
+
         // Статистиканы жаңарту
         function updateStats() {
             const today = new Date();
-            const upcomingCount = events.filter(event => new Date(event.date) > today).length;
+            const upcomingCount = events.filter(event => new Date(event.date) >= today).length;
+            const ongoingCount = events.filter(event => {
+                const eventDate = new Date(event.date);
+                const daysDiff = Math.ceil((eventDate - today) / (1000 * 3600 * 24));
+                return daysDiff >= 0 && daysDiff <= 7;
+            }).length;
             const uniqueSchools = [...new Set(participants.map(p => p.school))].length;
-            const totalParticipants = participants.length;
+            const totalParticipants = participants.reduce((sum, p) => sum + 1, 0);
             
             document.getElementById('total-events').textContent = events.length;
             document.getElementById('total-participants').textContent = totalParticipants;
@@ -1395,7 +1034,7 @@
         }
 
         // Қатысушыларды көрсету
-        function displayParticipants() {
+        function displayParticipants(sortType = 'date-desc') {
             const participantsList = document.getElementById('participants-list');
             participantsList.innerHTML = '';
             
@@ -1404,18 +1043,34 @@
                 return;
             }
             
-            participants.forEach(participant => {
+            // Сұрыптау
+            let sortedParticipants = [...participants];
+            
+            switch(sortType) {
+                case 'date-desc':
+                    sortedParticipants.sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt));
+                    break;
+                case 'name-asc':
+                    sortedParticipants.sort((a, b) => a.name.localeCompare(b.name, 'kk'));
+                    break;
+                case 'school-asc':
+                    sortedParticipants.sort((a, b) => a.school.localeCompare(b.school, 'kk'));
+                    break;
+            }
+            
+            sortedParticipants.forEach(participant => {
                 const participantElement = document.createElement('div');
                 participantElement.className = 'participant-item';
                 participantElement.innerHTML = `
                     <div>
                         <strong>${participant.name}</strong><br>
                         <small>${participant.school}, ${participant.class} сынып</small><br>
-                        <small>${participant.city} | ${participant.phone}</small>
+                        <small>${participant.city} | ${participant.phone} | ${participant.email}</small>
                     </div>
                     <div>
-                        <small>${participant.eventName}</small><br>
-                        <small>${formatDate(participant.registeredAt)}</small>
+                        <small><strong>${participant.eventName}</strong></small><br>
+                        <small>Тіркелген: ${formatDateTime(participant.registeredAt)}</small>
+                        ${participant.score ? `<br><small>Ұпай: ${participant.score}</small>` : ''}
                     </div>
                 `;
                 participantsList.appendChild(participantElement);
@@ -1428,11 +1083,15 @@
             adminEventsList.innerHTML = '';
             
             events.forEach(event => {
+                const eventDate = new Date(event.date);
+                const today = new Date();
+                const daysDiff = Math.ceil((eventDate - today) / (1000 * 3600 * 24));
+                
                 const eventElement = document.createElement('div');
                 eventElement.className = 'event';
                 eventElement.innerHTML = `
                     <div class="event-header">
-                        <h3>${event.name}</h3>
+                        <h3>${event.name} <small>(${event.id})</small></h3>
                         <div class="event-date">${formatDate(event.date)}</div>
                     </div>
                     <p>${event.description}</p>
@@ -1445,13 +1104,22 @@
                             <i class="fas fa-map-marker-alt"></i>
                             <span>${event.location}</span>
                         </div>
+                        <div class="detail-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>${daysDiff} күн қалды</span>
+                        </div>
                     </div>
-                    <button class="edit-event-btn" data-event-id="${event.id}">
-                        <i class="fas fa-edit"></i> Өзгерту
-                    </button>
-                    <button class="delete-event-btn" data-event-id="${event.id}" style="background: #e74c3c;">
-                        <i class="fas fa-trash"></i> Жою
-                    </button>
+                    <div class="event-actions">
+                        <button class="edit-event-btn" data-event-id="${event.id}">
+                            <i class="fas fa-edit"></i> Өзгерту
+                        </button>
+                        <button class="view-participants-btn" onclick="viewEventParticipants(${event.id})" style="background: #9b59b6;">
+                            <i class="fas fa-users"></i> Қатысушылар
+                        </button>
+                        <button class="delete-event-btn" data-event-id="${event.id}" style="background: #e74c3c;">
+                            <i class="fas fa-trash"></i> Жою
+                        </button>
+                    </div>
                 `;
                 adminEventsList.appendChild(eventElement);
             });
@@ -1467,11 +1135,64 @@
             document.querySelectorAll('.delete-event-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const eventId = parseInt(this.getAttribute('data-event-id'));
-                    if (confirm('Іс-шараны жоюға сенімдісіз бе?')) {
+                    if (confirm('Іс-шараны жоюға сенімдісіз бе? Бұл әрекетті кері қайтару мүмкін емес.')) {
                         deleteEvent(eventId);
                     }
                 });
             });
+        }
+
+        // Іс-шара қатысушыларын көру
+        function viewEventParticipants(eventId) {
+            const event = events.find(e => e.id === eventId);
+            if (!event) return;
+            
+            const eventParticipants = participants.filter(p => p.eventId === eventId);
+            
+            const modal = document.getElementById('registrationModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const registrationForm = document.getElementById('registrationForm');
+            
+            modalTitle.innerHTML = `<i class="fas fa-users"></i> "${event.name}" іс-шарасының қатысушылары`;
+            registrationForm.style.display = 'none';
+            
+            const participantsDiv = document.createElement('div');
+            
+            if (eventParticipants.length > 0) {
+                let participantsHTML = `
+                    <h3>Қатысушылар (${eventParticipants.length} адам):</h3>
+                    <div class="participants-list">
+                `;
+                
+                eventParticipants.forEach(participant => {
+                    participantsHTML += `
+                        <div class="participant-item">
+                            <div>
+                                <strong>${participant.name}</strong><br>
+                                <small>${participant.school}, ${participant.class} сынып</small><br>
+                                <small>${participant.city} | ${participant.phone}</small>
+                            </div>
+                            <div>
+                                <small>Тіркелген: ${formatDate(participant.registeredAt)}</small>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                participantsHTML += `</div>`;
+                participantsDiv.innerHTML = participantsHTML;
+            } else {
+                participantsDiv.innerHTML = '<p>Бұл іс-шарада қатысушылар жоқ.</p>';
+            }
+            
+            modal.querySelector('.modal-content').appendChild(participantsDiv);
+            modal.style.display = 'block';
+            
+            modal.querySelector('.close-btn').onclick = () => {
+                modal.style.display = 'none';
+                participantsDiv.remove();
+                registrationForm.style.display = 'block';
+            };
         }
 
         // Тіркелу модальды терезесі
@@ -1479,9 +1200,17 @@
             const modal = document.getElementById('registrationModal');
             const modalTitle = document.getElementById('modalTitle');
             const eventIdInput = document.getElementById('eventIdForRegistration');
+            const registrationForm = document.getElementById('registrationForm');
             
             modalTitle.innerHTML = `<i class="fas fa-user-plus"></i> "${eventName}" іс-шарасына тіркелу`;
             eventIdInput.value = eventId;
+            registrationForm.style.display = 'block';
+            
+            // Басқа мазмұнды жою (егер бар болса)
+            const existingContent = modal.querySelector('.modal-content > div:not(:first-child):not(:last-child)');
+            if (existingContent) {
+                existingContent.remove();
+            }
             
             modal.style.display = 'block';
             
@@ -1503,23 +1232,29 @@
                 id: events.length > 0 ? Math.max(...events.map(e => e.id)) + 1 : 1,
                 ...eventData,
                 participants: 0,
-                registeredAt: new Date().toISOString().split('T')[0]
+                registeredAt: new Date().toISOString().split('T')[0],
+                status: "upcoming",
+                categories: eventData.type === "olympiad" ? ["олимпиада"] : 
+                           eventData.type === "competition" ? ["конкурс"] : 
+                           eventData.type === "festival" ? ["фестиваль"] : ["басқа"]
             };
             
             events.push(newEvent);
             
             // Анимация эффектісі
-            const eventElement = document.querySelector(`[data-event-id="${newEvent.id}"]`);
-            if (eventElement) {
-                eventElement.classList.add('event-pulse');
-                setTimeout(() => eventElement.classList.remove('event-pulse'), 2000);
-            }
+            const eventsList = document.getElementById('events-list');
+            eventsList.scrollIntoView({ behavior: 'smooth' });
             
             displayEvents();
             displayAdminEvents();
             
             // Хабарлама қосу
-            addNotification(`Жаңа іс-шара қосылды: ${eventData.name}`);
+            addNotification(`Жаңа іс-шара қосылды: "${eventData.name}"`, 'success');
+            
+            // Жергілікті сақтау
+            saveToLocalStorage();
+            
+            return newEvent.id;
         }
 
         // Іс-шараны өзгерту
@@ -1528,11 +1263,23 @@
             if (!event) return;
             
             const newName = prompt('Іс-шараның жаңа атауы:', event.name);
-            if (newName) {
-                event.name = newName;
+            if (newName && newName.trim() !== '') {
+                event.name = newName.trim();
+                
+                const newLocation = prompt('Жаңа орын:', event.location);
+                if (newLocation && newLocation.trim() !== '') {
+                    event.location = newLocation.trim();
+                }
+                
+                const newCapacity = prompt('Жаңа сыйымдылық (бос болса, ескі мәні сақталады):', event.capacity);
+                if (newCapacity && !isNaN(newCapacity) && parseInt(newCapacity) > 0) {
+                    event.capacity = parseInt(newCapacity);
+                }
+                
                 displayEvents();
                 displayAdminEvents();
-                addNotification(`"${event.name}" іс-шарасы өзгертілді`);
+                addNotification(`"${event.name}" іс-шарасы өзгертілді`, 'info');
+                saveToLocalStorage();
             }
         }
 
@@ -1550,32 +1297,50 @@
             displayEvents();
             displayParticipants();
             displayAdminEvents();
-            addNotification(`"${eventName}" іс-шарасы жойылды`);
+            addNotification(`"${eventName}" іс-шарасы жойылды`, 'warning');
+            saveToLocalStorage();
         }
 
         // Хабарламаларды басқару
         let notifications = [
-            { id: 1, text: "Математика олимпиадасына тіркелу 2 күннен кейін аяқталады", type: "urgent", date: "2025-03-13" },
-            { id: 2, text: "Жаңа семинар қосылды: 'Ғылыми жоба жасау'", type: "info", date: "2025-03-12" },
-            { id: 3, text: "Ағылшын тілі конкурсының нәтижелері жарияланды", type: "success", date: "2025-03-10" }
+            { id: 1, text: "Математика олимпиадасына тіркелу 2 күннен кейін аяқталады", type: "urgent", date: "2025-03-13", read: false },
+            { id: 2, text: "Жаңа семинар қосылды: 'Ғылыми жоба жасау'", type: "info", date: "2025-03-12", read: false },
+            { id: 3, text: "Ағылшын тілі конкурсының нәтижелері жарияланды", type: "success", date: "2025-03-10", read: false }
         ];
 
         function displayNotifications() {
             const notificationsList = document.getElementById('notifications-list');
             notificationsList.innerHTML = '';
             
-            notifications.forEach(notif => {
+            const unreadCount = notifications.filter(n => !n.read).length;
+            document.getElementById('notificationCount').textContent = unreadCount;
+            
+            if (notifications.length === 0) {
+                notificationsList.innerHTML = '<p>Хабарламалар жоқ.</p>';
+                return;
+            }
+            
+            // Кері хронологиялық ретпен көрсету
+            const sortedNotifications = [...notifications].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedNotifications.forEach(notif => {
                 const notifElement = document.createElement('div');
-                notifElement.className = `notification-item ${notif.type}`;
+                notifElement.className = `notification-item ${notif.type} ${notif.read ? 'read' : 'unread'}`;
                 notifElement.innerHTML = `
                     <p>${notif.text}</p>
-                    <small>${formatDate(notif.date)}</small>
+                    <small>${formatDate(notif.date)} ${notif.read ? '· Оқылған' : '· Жаңа'}</small>
                 `;
+                
+                // Оқылған деп белгілеу
+                notifElement.addEventListener('click', function() {
+                    if (!notif.read) {
+                        notif.read = true;
+                        displayNotifications();
+                    }
+                });
+                
                 notificationsList.appendChild(notifElement);
             });
-            
-            // Хабарлама санын жаңарту
-            document.getElementById('notificationCount').textContent = notifications.length;
         }
 
         function addNotification(text, type = 'info') {
@@ -1583,16 +1348,22 @@
                 id: notifications.length > 0 ? Math.max(...notifications.map(n => n.id)) + 1 : 1,
                 text: text,
                 type: type,
-                date: new Date().toISOString().split('T')[0]
+                date: new Date().toISOString().split('T')[0],
+                read: false
             };
             
-            notifications.unshift(newNotification); // Басына қосу
+            notifications.unshift(newNotification);
             displayNotifications();
             
-            // Дыбыс ойнату (қосымша)
+            // Дыбыс ойнату (тек жедел хабарламалар үшін)
             if (type === 'urgent') {
-                const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
-                audio.play().catch(e => console.log('Дыбыс ойнату қатесі:', e));
+                try {
+                    const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
+                    audio.volume = 0.3;
+                    audio.play().catch(e => console.log('Дыбыс ойнату қатесі:', e));
+                } catch (e) {
+                    console.log('Дыбыс қатесі:', e);
+                }
             }
         }
 
@@ -1612,6 +1383,7 @@
 
         function filterEvents(filter) {
             const eventElements = document.querySelectorAll('.event');
+            let count = 0;
             
             eventElements.forEach(event => {
                 const eventType = event.getAttribute('data-type');
@@ -1637,13 +1409,67 @@
                         showEvent = status === 'upcoming';
                         break;
                     case 'ongoing':
-                        showEvent = status === 'ongoing';
+                        showEvent = status === 'ongoing' || status === 'urgent';
                         break;
                     default:
                         showEvent = true;
                 }
                 
-                event.style.display = showEvent ? 'block' : 'none';
+                if (showEvent) {
+                    event.style.display = 'block';
+                    event.classList.add('animate__animated', 'animate__fadeIn');
+                    count++;
+                } else {
+                    event.style.display = 'none';
+                }
+            });
+            
+            // Ештеңе табылмаса хабарлау
+            if (count === 0) {
+                const eventsList = document.getElementById('events-list');
+                const noResults = document.createElement('p');
+                noResults.textContent = 'Сүзгі бойынша іс-шаралар табылмады.';
+                noResults.style.textAlign = 'center';
+                noResults.style.padding = '20px';
+                noResults.style.color = '#666';
+                
+                // Егер алдыңғы хабарлама жоқ болса ғана қосу
+                if (!eventsList.querySelector('.no-results-message')) {
+                    noResults.className = 'no-results-message';
+                    eventsList.appendChild(noResults);
+                }
+            } else {
+                // Хабарламаны жою
+                const noResults = document.querySelector('.no-results-message');
+                if (noResults) {
+                    noResults.remove();
+                }
+            }
+        }
+
+        // Сұрыптау функциясы
+        function setupSorting() {
+            const sortBtns = document.querySelectorAll('.sort-btn');
+            sortBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    sortBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const sortType = this.getAttribute('data-sort');
+                    displayEvents(sortType);
+                });
+            });
+            
+            // Қатысушыларды сұрыптау
+            const participantSortBtns = document.querySelectorAll('[data-sort-participants]');
+            participantSortBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    participantSortBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const sortType = this.getAttribute('data-sort-participants');
+                    displayParticipants(sortType);
+                });
             });
         }
 
@@ -1679,6 +1505,22 @@
             document.getElementById('exportEvents').addEventListener('click', function() {
                 exportData('events');
             });
+            
+            document.getElementById('exportCSV').addEventListener('click', function() {
+                exportCSVData();
+            });
+            
+            document.getElementById('deleteAllEvents').addEventListener('click', function() {
+                if (confirm('Барлық іс-шараларды жоюға сенімдісіз бе? Бұл әрекетті кері қайтару мүмкін емес.')) {
+                    events = [];
+                    participants = [];
+                    displayEvents();
+                    displayParticipants();
+                    displayAdminEvents();
+                    addNotification('Барлық іс-шаралар жойылды', 'warning');
+                    saveToLocalStorage();
+                }
+            });
         }
 
         function exportData(type) {
@@ -1699,16 +1541,56 @@
             const link = document.createElement('a');
             link.href = url;
             link.download = filename;
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
             
             URL.revokeObjectURL(url);
-            alert(`${type === 'participants' ? 'Қатысушылар' : 'Іс-шаралар'} сәтті экспортталды!`);
+            addNotification(`${type === 'participants' ? 'Қатысушылар' : 'Іс-шаралар'} сәтті экспортталды!`, 'success');
+        }
+
+        function exportCSVData() {
+            if (participants.length === 0) {
+                alert('Экспорттау үшін қатысушылар жоқ!');
+                return;
+            }
+            
+            // CSV басы
+            let csv = 'Аты-жөні,Email,Телефон,Мектеп,Сынып,Қала,Іс-шара,Тіркелген күні\n';
+            
+            // Деректер
+            participants.forEach(p => {
+                csv += `"${p.name}","${p.email}","${p.phone}","${p.school}",${p.class},"${p.city}","${p.eventName}","${p.registeredAt}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `қатысушылар-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            URL.revokeObjectURL(url);
+            addNotification('Қатысушылар CSV файлына экспортталды!', 'success');
         }
 
         // Онлайн қатысушылар санын эмуляциялау
         function updateLiveParticipants() {
             const liveCount = Math.floor(Math.random() * 50) + 20;
             document.getElementById('live-participants').textContent = liveCount;
+        }
+
+        // Уақытты жаңарту
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('kk-KZ', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('current-time').textContent = timeString;
         }
 
         // Жылды жаңарту
@@ -1782,47 +1664,440 @@
 
         // Табыларды басқару
         function setupTabs() {
-            const tabs = document.querySelectorAll('.tab');
-            const tabContents = document.querySelectorAll('.tab-content');
+            // Әкімшілік табылары
+            const adminTabs = document.querySelectorAll('#adminTabs .tab');
+            const adminTabContents = document.querySelectorAll('#adminTabs .tab-content');
             
-            tabs.forEach(tab => {
+            adminTabs.forEach(tab => {
                 tab.addEventListener('click', function() {
                     const tabId = this.getAttribute('data-tab');
                     
                     // Белсенді классын өзгерту
-                    tabs.forEach(t => t.classList.remove('active'));
+                    adminTabs.forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
                     
                     // Тап мазмұнын көрсету/жасыру
-                    tabContents.forEach(content => {
+                    adminTabContents.forEach(content => {
                         content.classList.remove('active');
                         if (content.id === `${tabId}-tab`) {
                             content.classList.add('active');
+                            
+                            // Графиктерді жаңарту
+                            if (tabId === 'stats') {
+                                updateCharts();
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Нәтижелер табылары
+            const resultsTabs = document.querySelectorAll('[data-results-tab]');
+            const resultsTabContents = document.querySelectorAll('#results .tab-content');
+            
+            resultsTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-results-tab');
+                    
+                    // Белсенді классын өзгерту
+                    resultsTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Тап мазмұнын көрсету/жасыру
+                    resultsTabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `${tabId}-tab`) {
+                            content.classList.add('active');
+                            
+                            // Мазмұнды жаңарту
+                            if (tabId === 'ranking') {
+                                updateRankingTable();
+                            } else if (tabId === 'winners') {
+                                updateWinnersList();
+                            } else if (tabId === 'history') {
+                                updateHistoryList();
+                            }
                         }
                     });
                 });
             });
         }
 
+        // Рейтинг кестесін жаңарту
+        function updateRankingTable() {
+            const tableBody = document.getElementById('ranking-table-body');
+            tableBody.innerHTML = '';
+            
+            if (participants.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Деректер жоқ</td></tr>';
+                return;
+            }
+            
+            // Ұпай бойынша сұрыптау
+            const sortedParticipants = [...participants].sort((a, b) => (b.score || 0) - (a.score || 0));
+            
+            sortedParticipants.forEach((participant, index) => {
+                let medal = '';
+                if (index === 0) medal = '<span class="medal gold">🥇</span>';
+                else if (index === 1) medal = '<span class="medal silver">🥈</span>';
+                else if (index === 2) medal = '<span class="medal bronze">🥉</span>';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1} ${medal}</td>
+                    <td>${participant.name}</td>
+                    <td>${participant.school}</td>
+                    <td>${participant.city}</td>
+                    <td>${participant.score || 0}</td>
+                    <td>${participant.eventName}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Жеңімпаздар тізімін жаңарту
+        function updateWinnersList() {
+            const winnersList = document.getElementById('winners-list');
+            winnersList.innerHTML = '';
+            
+            // Әр іс-шараның жеңімпаздарын алу
+            const eventsWithParticipants = events.filter(event => 
+                participants.some(p => p.eventId === event.id)
+            );
+            
+            if (eventsWithParticipants.length === 0) {
+                winnersList.innerHTML = '<p>Әлі жеңімпаздар жоқ.</p>';
+                return;
+            }
+            
+            eventsWithParticipants.forEach(event => {
+                const eventParticipants = participants.filter(p => p.eventId === event.id);
+                if (eventParticipants.length === 0) return;
+                
+                // Ұпай бойынша сұрыптау
+                const sorted = [...eventParticipants].sort((a, b) => (b.score || 0) - (a.score || 0));
+                const top3 = sorted.slice(0, 3);
+                
+                if (top3.length > 0) {
+                    const eventDiv = document.createElement('div');
+                    eventDiv.className = 'card';
+                    eventDiv.style.marginBottom = '15px';
+                    
+                    let winnersHTML = `<h4>${event.name}</h4>`;
+                    
+                    top3.forEach((participant, index) => {
+                        let medal = '';
+                        if (index === 0) medal = '🥇';
+                        else if (index === 1) medal = '🥈';
+                        else if (index === 2) medal = '🥉';
+                        
+                        winnersHTML += `
+                            <p>${medal} ${participant.name} (${participant.school}) - ${participant.score || 0} ұпай</p>
+                        `;
+                    });
+                    
+                    eventDiv.innerHTML = winnersHTML;
+                    winnersList.appendChild(eventDiv);
+                }
+            });
+        }
+
+        // Тарих тізімін жаңарту
+        function updateHistoryList() {
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            
+            // Өткен іс-шараларды алу
+            const pastEvents = events.filter(event => {
+                const eventDate = new Date(event.date);
+                const today = new Date();
+                return eventDate < today;
+            });
+            
+            if (pastEvents.length === 0) {
+                historyList.innerHTML = '<p>Өткен іс-шаралар жоқ.</p>';
+                return;
+            }
+            
+            // Күні бойынша сұрыптау (ең жақын)
+            const sortedEvents = [...pastEvents].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedEvents.forEach(event => {
+                const eventDiv = document.createElement('div');
+                eventDiv.className = 'event';
+                eventDiv.style.marginBottom = '15px';
+                
+                const participantsCount = participants.filter(p => p.eventId === event.id).length;
+                
+                eventDiv.innerHTML = `
+                    <div class="event-header">
+                        <h4>${event.name}</h4>
+                        <div class="event-date">${formatDate(event.date)}</div>
+                    </div>
+                    <p>${event.description}</p>
+                    <p><i class="fas fa-users"></i> Қатысқандар: ${participantsCount} адам</p>
+                    <p><i class="fas fa-map-marker-alt"></i> ${event.location}</p>
+                `;
+                
+                historyList.appendChild(eventDiv);
+            });
+        }
+
+        // Графиктерді жаңарту
+        function updateCharts() {
+            // Іс-шаралар түрі бойынша график
+            const eventsCtx = document.getElementById('eventsChart').getContext('2d');
+            
+            // Іс-шара түрлерін санау
+            const eventTypes = {};
+            events.forEach(event => {
+                eventTypes[event.type] = (eventTypes[event.type] || 0) + 1;
+            });
+            
+            new Chart(eventsCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(eventTypes).map(type => getEventType(type)),
+                    datasets: [{
+                        data: Object.values(eventTypes),
+                        backgroundColor: [
+                            '#3498db', '#2ecc71', '#e74c3c', '#9b59b6', '#f1c40f', '#1abc9c'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Іс-шаралардың түрлері бойынша бөлінуі'
+                        }
+                    }
+                }
+            });
+            
+            // Қатысушылар динамикасы графигі
+            const participantsCtx = document.getElementById('participantsChart').getContext('2d');
+            
+            // Айлар бойынша қатысушыларды топтау
+            const monthlyParticipants = {};
+            participants.forEach(p => {
+                const date = new Date(p.registeredAt);
+                const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
+                monthlyParticipants[monthYear] = (monthlyParticipants[monthYear] || 0) + 1;
+            });
+            
+            const months = Object.keys(monthlyParticipants).sort();
+            const counts = months.map(month => monthlyParticipants[month]);
+            
+            new Chart(participantsCtx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Қатысушылар саны',
+                        data: counts,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Қатысушылардың динамикасы'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Парольді тексеру
+        function setupPasswordProtection() {
+            // Іс-шара қосу формасының паролін тексеру
+            document.getElementById('checkPasswordBtn').addEventListener('click', function() {
+                const password = document.getElementById('adminPassword').value;
+                const submitBtn = document.getElementById('submitEventBtn');
+                const incorrectMsg = document.getElementById('incorrectPassword');
+                
+                if (password === ADMIN_PASSWORD) {
+                    submitBtn.disabled = false;
+                    incorrectMsg.style.display = 'none';
+                    addNotification('Әкімшілік паролі қабылданды', 'success');
+                } else {
+                    submitBtn.disabled = true;
+                    incorrectMsg.style.display = 'block';
+                }
+            });
+            
+            // Әкімшілік панеліне кіру
+            document.getElementById('adminAccessBtn').addEventListener('click', function() {
+                const password = document.getElementById('adminAccessPassword').value;
+                const adminTabs = document.getElementById('adminTabs');
+                const incorrectMsg = document.getElementById('adminIncorrectPassword');
+                
+                if (password === ADMIN_PASSWORD) {
+                    isAdminAuthenticated = true;
+                    adminTabs.style.display = 'block';
+                    incorrectMsg.style.display = 'none';
+                    addNotification('Әкімшілік панеліне кірдіңіз', 'success');
+                    
+                    // Графиктерді бастау
+                    updateCharts();
+                } else {
+                    incorrectMsg.style.display = 'block';
+                }
+            });
+        }
+
+        // Жергілікті сақтау
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('olympiada_events', JSON.stringify(events));
+                localStorage.setItem('olympiada_participants', JSON.stringify(participants));
+                localStorage.setItem('olympiada_notifications', JSON.stringify(notifications));
+            } catch (e) {
+                console.log('Жергілікті сақтау қатесі:', e);
+            }
+        }
+
+        // Жергілікті жүктеу
+        function loadFromLocalStorage() {
+            try {
+                const savedEvents = localStorage.getItem('olympiada_events');
+                const savedParticipants = localStorage.getItem('olympiada_participants');
+                const savedNotifications = localStorage.getItem('olympiada_notifications');
+                
+                if (savedEvents) events = JSON.parse(savedEvents);
+                if (savedParticipants) participants = JSON.parse(savedParticipants);
+                if (savedNotifications) notifications = JSON.parse(savedNotifications);
+            } catch (e) {
+                console.log('Жергілікті жүктеу қатесі:', e);
+            }
+        }
+
+        // Пікір формасы
+        function setupFeedbackForm() {
+            const feedbackForm = document.getElementById('feedbackForm');
+            if (feedbackForm) {
+                feedbackForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const name = document.getElementById('feedbackName').value;
+                    const email = document.getElementById('feedbackEmail').value;
+                    const message = document.getElementById('feedbackMessage').value;
+                    
+                    // Мұнда пікірді өңдеу қосылады (email жіберу, базаға сақтау, т.б.)
+                    console.log('Пікір:', { name, email, message });
+                    
+                    // Хабарлама көрсету
+                    addNotification('Пікіріңіз сәтті жіберілді! Рахмет!', 'success');
+                    
+                    // Форманы тазалау
+                    this.reset();
+                    
+                    // Әкімшілікке хабарлама қосу
+                    if (isAdminAuthenticated) {
+                        addNotification(`Жаңа пікір: ${name} - ${message.substring(0, 50)}...`, 'info');
+                    }
+                });
+            }
+        }
+
+        // Барынша оқылған деп белгілеу
+        function setupMarkAllRead() {
+            document.getElementById('markAllRead').addEventListener('click', function() {
+                notifications.forEach(notif => notif.read = true);
+                displayNotifications();
+                addNotification('Барлық хабарламалар оқылған деп белгіленді', 'success');
+            });
+        }
+
+        // Телефон нөмірі форматы
+        function setupPhoneFormat() {
+            const phoneInput = document.getElementById('participantPhone');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function() {
+                    let value = this.value.replace(/\D/g, '');
+                    if (value.length > 0) {
+                        if (!value.startsWith('7')) {
+                            value = '7' + value;
+                        }
+                        this.value = '+7 (' + value.substring(1, 4) + ') ' + value.substring(4, 7) + '-' + value.substring(7, 9) + '-' + value.substring(9, 11);
+                    }
+                });
+            }
+        }
+
+        // Параметрлерді сақтау
+        function setupSettings() {
+            document.getElementById('saveSettings').addEventListener('click', function() {
+                const adminEmail = document.getElementById('adminEmail').value;
+                const botName = document.getElementById('telegramBotName').value;
+                const defaultCapacity = document.getElementById('defaultCapacity').value;
+                
+                // Мұнда параметрлерді сақтау қосылады
+                localStorage.setItem('admin_email', adminEmail);
+                localStorage.setItem('telegram_bot', botName);
+                localStorage.setItem('default_capacity', defaultCapacity);
+                
+                addNotification('Параметрлер сәтті сақталды', 'success');
+            });
+            
+            // Сақталған параметрлерді жүктеу
+            const savedEmail = localStorage.getItem('admin_email');
+            const savedBot = localStorage.getItem('telegram_bot');
+            const savedCapacity = localStorage.getItem('default_capacity');
+            
+            if (savedEmail) document.getElementById('adminEmail').value = savedEmail;
+            if (savedBot) document.getElementById('telegramBotName').value = savedBot;
+            if (savedCapacity) document.getElementById('defaultCapacity').value = savedCapacity;
+        }
+
         // Негізгі бастапқы функция
         document.addEventListener('DOMContentLoaded', function() {
+            // Жергілікті деректерді жүктеу
+            loadFromLocalStorage();
+            
             // Деректерді көрсету
             displayEvents();
             displayParticipants();
             displayAdminEvents();
             displayNotifications();
+            updateRankingTable();
+            updateWinnersList();
+            updateHistoryList();
             
             // Функцияларды іске қосу
             setupFilters();
+            setupSorting();
             setupDarkMode();
             setupExport();
             setupNavigation();
             setupTelegramBot();
             setupTabs();
+            setupPasswordProtection();
+            setupFeedbackForm();
+            setupMarkAllRead();
+            setupPhoneFormat();
+            setupSettings();
             
             // Статистиканы жаңарту
             updateLiveParticipants();
-            setInterval(updateLiveParticipants, 30000); // 30 секунд сайын жаңарту
+            setInterval(updateLiveParticipants, 30000);
+            
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
             
             updateCurrentYear();
             
@@ -1842,6 +2117,11 @@
                 newEventForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
+                    if (document.getElementById('submitEventBtn').disabled) {
+                        alert('Алдымен парольді енгізіңіз!');
+                        return;
+                    }
+                    
                     const eventData = {
                         name: document.getElementById('eventName').value,
                         date: document.getElementById('eventDate').value,
@@ -1849,10 +2129,11 @@
                         type: document.getElementById('eventType').value,
                         description: document.getElementById('eventDescription').value,
                         image: document.getElementById('eventImage').value || 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-                        capacity: parseInt(document.getElementById('eventCapacity').value) || null
+                        capacity: parseInt(document.getElementById('eventCapacity').value) || 
+                                 parseInt(document.getElementById('defaultCapacity').value) || 100
                     };
                     
-                    addNewEvent(eventData);
+                    const eventId = addNewEvent(eventData);
                     
                     // Форманы тазалау
                     this.reset();
@@ -1863,6 +2144,9 @@
                     setTimeout(() => {
                         successMessage.style.display = 'none';
                     }, 3000);
+                    
+                    // Парольді қайта белгілеу
+                    document.getElementById('submitEventBtn').disabled = true;
                 });
             }
             
@@ -1875,8 +2159,9 @@
                     const eventId = parseInt(document.getElementById('eventIdForRegistration').value);
                     const event = events.find(e => e.id === eventId);
                     
+                    // Сыйымдылықты тексеру
                     if (event && event.capacity && event.participants >= event.capacity) {
-                        alert('Кешіріңіз, бұл іс-шараға барлық орындар толды!');
+                        alert('Кешіріңіз, бұл іс-шараға барлық орындар толды! Басқа іс-шараны таңдаңыз.');
                         return;
                     }
                     
@@ -1890,7 +2175,8 @@
                         city: document.getElementById('participantCity').value,
                         eventId: eventId,
                         eventName: event ? event.name : 'Белгісіз іс-шара',
-                        registeredAt: new Date().toISOString().split('T')[0]
+                        registeredAt: new Date().toISOString().split('T')[0],
+                        score: Math.floor(Math.random() * 30) + 70 // Кездейсоқ ұпай
                     };
                     
                     participants.push(newParticipant);
@@ -1905,6 +2191,8 @@
                     displayParticipants();
                     displayAdminEvents();
                     updateStats();
+                    updateRankingTable();
+                    updateWinnersList();
                     
                     // Форманы тазалау
                     this.reset();
@@ -1920,6 +2208,9 @@
                     }, 3000);
                     
                     addNotification(`Жаңа қатысушы тіркелді: ${newParticipant.name}`, 'success');
+                    
+                    // Жергілікті сақтау
+                    saveToLocalStorage();
                 });
             }
             
@@ -1931,9 +2222,6 @@
                 notificationBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     notificationModal.style.display = 'block';
-                    
-                    // Хабарлама санын нөлге қайтару
-                    document.getElementById('notificationCount').textContent = '0';
                 });
                 
                 // Модальды терезені жабу
@@ -1955,19 +2243,19 @@
                 }
             }, true);
             
-            // Телефон нөмірі форматы
-            const phoneInput = document.getElementById('participantPhone');
-            if (phoneInput) {
-                phoneInput.addEventListener('input', function() {
-                    let value = this.value.replace(/\D/g, '');
-                    if (value.length > 0) {
-                        if (!value.startsWith('7')) {
-                            value = '7' + value;
-                        }
-                        this.value = '+7 (' + value.substring(1, 4) + ') ' + value.substring(4, 7) + '-' + value.substring(7, 9) + '-' + value.substring(9, 11);
+            // Кездейсоқ жаңартулар эмуляциясы
+            setInterval(() => {
+                if (events.length > 0 && Math.random() > 0.7) {
+                    const randomEvent = events[Math.floor(Math.random() * events.length)];
+                    randomEvent.participants += Math.floor(Math.random() * 3);
+                    displayEvents();
+                    updateStats();
+                    
+                    if (randomEvent.participants >= randomEvent.capacity * 0.9) {
+                        addNotification(`"${randomEvent.name}" іс-шарасына орындар таусылып жатыр!`, 'urgent');
                     }
-                });
-            }
+                }
+            }, 60000); // 1 минут сайын
         });
     </script>
 </body>
